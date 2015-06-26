@@ -12,7 +12,7 @@ impl<V> Matrix<V>
         pub fn new(elem: V, size: usize) -> Matrix<V> {
             let mut mat: Vec<Vec<V>> = Vec::with_capacity(size);
             for _ in 0..size {
-                let mut line : Vec<V> = Vec::with_capacity(size+1);
+                let mut line : Vec<V> = Vec::with_capacity(size);
                 for _ in 0..size {
                     line.push(elem);
                 }
@@ -26,8 +26,7 @@ impl<V> Matrix<V>
         /// Modify the matrix by setting the (`x`,`y`) element with `elem`
         pub fn set(&mut self, x: usize, y: usize, elem: V) {
             assert!(y < self.size, "Vector out of range writting!");
-            self.matrix[x].push(elem);
-            self.matrix[x].swap_remove(y);
+            self.matrix[x][y] = elem;
         }
 
         /// Give the (`x`,`y`) element of the matrix

@@ -24,6 +24,7 @@ pub fn is_delta_connected(delta: u32,
                 pcurr = curr;
                 let res = dist.is_clique();
                 resultat.push((curr, res));
+                println!("{} {}", curr, res);
             }
     }, &*filtre::combine(nfiltre, tfiltre));
     resultat
