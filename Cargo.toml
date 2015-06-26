@@ -1,0 +1,11 @@
+[package]
+name = "linkstreams"
+version = "0.1.0"
+authors = ["charlesHD <charleshdespointes@gmail.com>"]
+
+[[bin]]
+name = "linkstreams"
+doc = false
+
+[profile.dev]
+opt-level = 3
