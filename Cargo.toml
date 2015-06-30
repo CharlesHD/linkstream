@@ -9,3 +9,7 @@ doc = false
 
 [profile.dev]
 opt-level = 3
+
+[dependencies]
+docopt = "*"
+rustc-serialize = "*"  # if you're using `derive(RustcDecodable)`
