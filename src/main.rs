@@ -3,8 +3,8 @@ extern crate linkstreams;
 use linkstreams::algo;
 
 fn main() {
-    let tfiltre = Box::new(|_| true);
-    let nfiltre = Box::new(|_| true);
-    algo::is_delta_connected(0, 63, nfiltre, tfiltre);
+    let tfilter = |_| true;
+    let nfilter = |node| node > 0;
+    algo::is_delta_connected(5000, 63, &nfilter, &tfilter);
 
 }

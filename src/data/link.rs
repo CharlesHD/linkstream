@@ -43,8 +43,8 @@ pub type LinkStream = Vec<Link>;
 ///
 /// # Example
 /// ```
-/// # use linkstreams::data::Link;
-/// # use linkstreams::data::parse_line;
+/// # use linkstreams::data::link::Link;
+/// # use linkstreams::data::link::parse_line;
 /// assert_eq!(parse_line("0 1 10"), Link {node1: 0, node2: 1, time: 10});
 /// ```
 pub fn parse_line(line: &str) -> Link {
