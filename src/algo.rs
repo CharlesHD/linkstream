@@ -175,3 +175,45 @@ pub fn connected_component(mat: &Matrix<Time>, order: &Vec<Node>, nodefilter: &V
     }
     result
 }
+
+
+
+/// Count degrees of each node in the stdin linkstream.
+pub fn count_degrees(size: usize) -> Vec<u32> {
+    let mut result: Vec<u32> = Vec::with_capacity(size);
+    for _ in 0..size { result.push(0); }
+    let mut mat: Matrix<bool> = Matrix::new(false, size, size);
+    stdin::map( |link: Link| {
+        if ! mat.get(link.node1, link.node2) {
+            mat.set(link.node1, link.node2, true);
+            mat.set(link.node2, link.node1, true);
+            result[link.node1] = result[link.node1] + 1;
+            result[link.node2] = result[link.node2] + 1;
+        }
+    });
+    result
+}
+
+/// Return the list of first and last time apparition for each node in the stdin linkstream.
+pub fn count_first_and_last_apparition(size: usize) -> Vec<(Time, Time)> {
+    let mut result: Vec<(Time, Time)>= Vec::with_capacity(size);
+    let mut seens: Vec<bool> = Vec::with_capacity(size);
+    for _ in 0..size { result.push((0, 0)); seens.push(false); }
+    stdin::map(|link: Link| {
+        let n1 = link.node1;
+        let n2 = link.node2;
+        if ! seens[n1] {
+            result[n1] = (link.time, link.time);
+            seens[n1] = true;
+        }
+        if ! seens[n2] {
+            result[n2] = (link.time, link.time);
+            seens[n2] = true;
+        }
+        let (_, last) = result[n1];
+        result[n1] = (link.time, last);
+        let (_, last) = result[n2];
+        result[n2] = (link.time, last);
+    });
+    result
+}
