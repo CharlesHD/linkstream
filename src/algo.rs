@@ -3,10 +3,18 @@ use data::matrix::*;
 use data::filtre::NodeFilter;
 use data::filtre::TimeFilter;
 use data::filtre;
-use stdin;
+use data::iterators::link_iterator::LinkIterator;
 use std::cmp::min;
+use std::collections::HashMap;
 
-pub fn is_delta_connected(delta: Time,
+
+
+// ////////////////////////////
+//          CONNEXITE
+// ////////////////////////////
+
+pub fn is_delta_connected(links: &mut LinkIterator,
+                          delta: Time,
                           size: usize,
                           nfilter: &NodeFilter,
                           tfilter: &TimeFilter) -> Vec<(Time, bool)> {
@@ -16,25 +24,64 @@ pub fn is_delta_connected(delta: Time,
     let mut p_dist: Matrix<Time> = Matrix::new(max_val, size, size);
     let mut curr: Time = max_val;
     let mut pcurr: Time = curr;
-    stdin::map(
-        |link: Link| {
-            if filtre::combine(link, nfilter, tfilter){
-                maj_distance(link, &mut dist, &mut p_dist, &mut curr);
-                if curr != pcurr {
-                    pcurr = curr;
-                    let res = dist.is_subset_delta_clique(pcurr, delta, nfilter);
-                    resultat.push((curr, res));
-                    println!("{} {}", curr, res);
-                }
+    let mut first: bool = true;
+    for link in links {
+        if filtre::combine(link, nfilter, tfilter){
+            maj_distance(link, &mut dist, &mut p_dist, &mut curr);
+            if first { pcurr = curr; first = false; }
+            if curr != pcurr {
+                pcurr = curr;
+                let res = dist.is_subset_delta_clique(pcurr, delta, nfilter);
+                resultat.push((curr, res));
+                println!("{} {}", curr, res);
             }
-    });
+        }
+    }
     resultat
 }
 
+pub fn delta_reachability_graph(links: &mut LinkIterator,
+                                delta: Time,
+                                size: usize,
+                                nfilter: &NodeFilter,
+                                tfilter: &TimeFilter) -> Matrix<Time> {
+    let max_val: Time = Time::max_value();
+    let mut dist: Matrix<Time> = Matrix::new(max_val, size, size);
+    let mut p_dist: Matrix<Time> = Matrix::new(max_val, size, size);
+    let mut reach: Matrix<Time> = Matrix::new(1, size, size);
+    let mut curr: Time = max_val;
+    let mut pcurr: Time = curr;
+    let mut first: bool = true;
+    for link in links {
+        if filtre::combine(link, nfilter, tfilter){
+            maj_distance(link, &mut dist, &mut p_dist, &mut curr);
+            if first { pcurr = curr; first = false; }
+            if curr != pcurr {
+                pcurr = curr;
+                maj_reach_graph(&mut reach, &dist, link.time, delta);
+            }
+        }
+    }
+    reach
+}
+
+fn maj_reach_graph(reach: &mut Matrix<Time>,
+                   dist: &Matrix<Time>, time: Time, delta: Time) {
+    for i in 0..dist.width {
+        for j in 0..dist.height {
+            if reach.get(i, j) == 1 {
+                if dist.get(i, j) - time > delta {
+                    reach.set(i, j, 0);
+                }
+            }
+        }
+    }
+}
+
 fn maj_distance(link: Link,
-                     dist: &mut Matrix<Time>,
-                     p_dist: &mut Matrix<Time>,
-                     curr: &mut Time) {
+                dist: &mut Matrix<Time>,
+                p_dist: &mut Matrix<Time>,
+                curr: &mut Time) {
     let (u, v, t) = (link.node1, link.node2, link.time);
     if *curr == Time::max_value() {
         *curr = t;
@@ -65,6 +112,10 @@ fn maj_distance(link: Link,
     }
 }
 
+
+// ////////////////////////////
+//          PARTITION
+// ////////////////////////////
 
 /// Perform the deep-first search algorithm on the matrix induced by `mat` and the `nodefilter`. The algorithm use an `order` for selecting nodes.
 ///
@@ -176,30 +227,90 @@ pub fn connected_component(mat: &Matrix<Time>, order: &Vec<Node>, nodefilter: &V
     result
 }
 
+pub fn delta_components(links: &mut LinkIterator, size: usize,
+                        delta: Time) -> (Vec<Vec<Node>>, Vec<Vec<Node>>){
+    let order: Vec<Node> = (0..size).collect();
+    let mut components: Vec<Vec<Node>> = Vec::new();
+    let mut reste: Vec<Vec<Node>> = Vec::new();
+    let mut stack: Vec<Vec<Node>> = Vec::new();
+    let reach_graph: Matrix<Time> = delta_reachability_graph(links, delta, size, &|_| true, &|_| true);
+    stack.push((0..size).collect());
+    while let Some(filter) = stack.pop() {
+        let filter_clone = filter.clone();
+        if reach_graph.is_subset_clique(&move |node| filter_clone.contains(&node)) {
+            components.push(filter);
+        }
+        else {
+            let cuts: Vec<Vec<Node>> = connected_component(&reach_graph, &order, &filtre::node_filter(&filter, size));
+            for comp in cuts {
+                if comp.len() == filter.len() { reste.push(comp); }
+                else { stack.push(comp); }
+            }
+        }
+    }
+    (components, reste)
+}
 
+// ////////////////////////////
+//        EXISTENCE
+// ////////////////////////////
+pub fn delta_existence(links: &mut LinkIterator,
+                       nodes: &Vec<Node>, delta: Time) -> Vec<(Time, Vec<bool>)> {
+    let mut results: Vec<(Time, Vec<bool>)> = Vec::new();
+    let mut map: HashMap<Node, Node> = HashMap::new();
+    for i in 0..nodes.len() { map.insert(nodes[i], i); }
+    let map = map; // YOU SHALL NOT TOUCH THIS ANYMORE FOOL
+    let mut record: Vec<Time> = Vec::with_capacity(nodes.len());
+    let mval = Time::max_value();
+    let mut t_curr = mval;
+    for _ in 0..nodes.len() { record.push(mval); }
+    let is_existing = |t_curr: Time, record: &Vec<Time>| {
 
+        let res: Vec<bool> = record.iter().map(|time| time - t_curr < delta).collect();
+        res
+    };
+    for link in links {
+        let (n1, n2, t) = (link.node1, link.node2, link.time);
+        if t_curr == mval { t_curr = t; }
+        else if t_curr != t {
+            results.push((t, is_existing(t_curr, &record)));
+            t_curr = t;
+        }
+        if map.contains_key(&n1) {
+            let &bij = map.get(&n1).unwrap();
+            record[bij] = t; }
+        if map.contains_key(&n2) {
+            let &bij = map.get(&n2).unwrap();
+            record[bij] = t; }
+    }
+    results
+}
+
+// ////////////////////////////
+//         SMALL ALGOS
+// ////////////////////////////
 /// Count degrees of each node in the stdin linkstream.
-pub fn count_degrees(size: usize) -> Vec<u32> {
+pub fn count_degrees(links: &mut LinkIterator, size: usize) -> Vec<u32> {
     let mut result: Vec<u32> = Vec::with_capacity(size);
     for _ in 0..size { result.push(0); }
     let mut mat: Matrix<bool> = Matrix::new(false, size, size);
-    stdin::map( |link: Link| {
+    for link in links {
         if ! mat.get(link.node1, link.node2) {
             mat.set(link.node1, link.node2, true);
             mat.set(link.node2, link.node1, true);
             result[link.node1] = result[link.node1] + 1;
             result[link.node2] = result[link.node2] + 1;
         }
-    });
+    }
     result
 }
 
 /// Return the list of first and last time apparition for each node in the stdin linkstream.
-pub fn count_first_and_last_apparition(size: usize) -> Vec<(Time, Time)> {
+pub fn count_first_and_last_apparition(links: &mut LinkIterator, size: usize) -> Vec<(Time, Time)> {
     let mut result: Vec<(Time, Time)>= Vec::with_capacity(size);
     let mut seens: Vec<bool> = Vec::with_capacity(size);
     for _ in 0..size { result.push((0, 0)); seens.push(false); }
-    stdin::map(|link: Link| {
+    for link in links {
         let n1 = link.node1;
         let n2 = link.node2;
         if ! seens[n1] {
@@ -214,6 +325,18 @@ pub fn count_first_and_last_apparition(size: usize) -> Vec<(Time, Time)> {
         result[n1] = (link.time, last);
         let (_, last) = result[n2];
         result[n2] = (link.time, last);
-    });
+    }
     result
+}
+
+/// Count the number of different nodes the stdin linkstream has and the number of links
+pub fn count_nodes_and_links(links: &mut LinkIterator) -> (usize, usize) {
+    let mut seens: Vec<Node> = Vec::new();
+    let mut count = 0;
+    for link in links {
+        count = count + 1;
+        if ! seens.contains(&link.node1) { seens.push(link.node1); }
+        if ! seens.contains(&link.node2) { seens.push(link.node2); }
+    }
+    (seens.len(), count)
 }

@@ -3,9 +3,10 @@ use data::link::Node;
 use data::filtre::*;
 use std::cmp::min;
 /// A simple parametrized matrix implementation.
+#[derive(Debug)]
 pub struct Matrix<V>
     where V: Copy {
-        matrix: Vec<Vec<V>>,
+        pub matrix: Vec<Vec<V>>,
         pub width: usize,
         pub height: usize
     }
@@ -58,6 +59,16 @@ impl<V> Matrix<V>
         }
 
         pub fn is_square(&self) -> bool { self.width == self.height }
+
+        pub fn transpose(&self) -> Matrix<V> {
+            let mut transpose: Matrix<V> = Matrix::new(self.get(0, 0), self.height, self.width);
+            for i in 0..self.width {
+                for j in 0..self.height {
+                    transpose.set(j, i, self.get(i, j));
+                }
+            }
+            transpose
+        }
     }
 
 impl Matrix<Time> {
@@ -115,11 +126,13 @@ impl Matrix<Time> {
     /// assert_eq!(false, m.is_subset_clique(&nodefilter2));
     /// ```
     pub fn is_subset_clique(&self, nfilter: &NodeFilter) -> bool {
+        let mval = Time::max_value();
         for x in 0..self.width{
             if nfilter(x) {
                 for y in 0..self.height {
-                    if nfilter(y) && self.get(x, y) == 0 {
-                        return false;
+                    if nfilter(y)
+                        && (self.get(x, y) == 0 || self.get(x, y) == mval){
+                            return false;
                     }
                 }
             }
