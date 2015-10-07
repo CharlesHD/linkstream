@@ -42,6 +42,7 @@ linkstream calc comps 1000 62 < rollernet.dyn # <- return the lowerbound
 linkstream calc comps up 1000 62 < rollernet.dyn # <- return the upperbound
 ```
 
+
 ## linkstream calc exist [lr | cut] <delta> <nbNodes>
 This command acts differently if provided ```lr```, ```cut``` or nothing.
 
