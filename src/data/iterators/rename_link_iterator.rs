@@ -5,7 +5,7 @@ use data::iterators::link_iterator::*;
 /// Decorate a LinkIterator, renaming nodes.
 ///
 /// Links from this Iterator get Nodes starting from 0 to the cardinality of nodes in the stream.
-/// Renaming isn't free as it maintains an HashMap for linking old and new nodes name.
+/// Renaming cost an HashMap for linking old and new nodes name.
 pub struct RenameLinkIter<'a> {
     iter: &'a mut LinkIterator,
     pub seens: HashMap<Node, Node>,

@@ -1,6 +1,7 @@
 use data::link::Link;
 use std::io;
 use std::io::BufRead;
+use std::str::FromStr;
 
 /// Standard input based LinkIterator
 ///
@@ -22,7 +23,13 @@ impl Iterator for StdinLinkIter {
         let line = self.stdin.lock().lines().next();
         match line {
             None => None,
-            Some(l) => Some(Link::parse_line(&l.unwrap()))
+            Some(res_line) => {
+                let line = res_line.ok().expect("Failed to read line");
+                let link = Link::from_str(&line)
+                    .ok()
+                    .expect(&format!("Failed to parse line : {}", line));
+                Some(link)
+            }
         }
     }
 }

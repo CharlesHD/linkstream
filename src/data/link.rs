@@ -1,5 +1,6 @@
 use std::cmp::PartialEq;
 use std::iter::Iterator;
+use std::str::FromStr;
 
 /// Time is implemement as u64
 pub type Time = u64;
@@ -22,22 +23,16 @@ impl Link {
         format!("{} {} {}", self.node1, self.node2, self.time)
     }
 
-    /// Convert a line into a Link
-    ///
-    /// # Example
-    /// ```
-    /// # use linkstreams::data::link::Link;
-    /// assert_eq!(Link::parse_line("0 1 10"), Link {node1: 0, node2: 1, time: 10});
-    /// ```
-    pub fn parse_line(line: &str) -> Link {
-        let data: Vec<&str> = line.split(" ").collect();
-        assert!(data.len() >= 3, "Error in line, not representing a link !");
-        Link {
-            node1: data[0].parse::<usize>().unwrap(),
-            node2: data[1].parse::<usize>().unwrap(),
-            time: data[2].parse::<u64>().unwrap(),
-        }
-    }
+
+    // pub fn parse_line(line: &str) -> Link {
+    //     let data: Vec<&str> = line.split(" ").collect();
+    //     assert!(data.len() >= 3, "Error in line, not representing a link !");
+    //     Link {
+    //         node1: data[0].parse::<usize>().unwrap(),
+    //         node2: data[1].parse::<usize>().unwrap(),
+    //         time: data[2].parse::<u64>().unwrap(),
+    //     }
+    // }
 }
 
 impl PartialEq for Link {
@@ -49,6 +44,29 @@ impl PartialEq for Link {
 
     fn ne(&self, other: &Link) -> bool {
         !self.eq(other)
+    }
+}
+
+#[derive(Debug)]
+pub struct LinkParseError;
+impl FromStr for Link {
+    type Err = LinkParseError;
+    /// Convert a line into a Link
+    ///
+    /// # Example
+    /// ```
+    /// # use linkstreams::data::link::Link;
+    /// # use std::str::FromStr;
+    /// assert_eq!(Link::from_str("0 1 10").unwrap(), Link {node1: 0, node2: 1, time: 10});
+    /// ```
+    fn from_str(line: &str) -> Result<Self, Self::Err> {
+        let data: Vec<&str> = line.split(" ").collect();
+        assert!(data.len() >= 3, "Error in line, not representing a link !");
+        Ok(Link {
+            node1: data[0].parse::<usize>().unwrap(),
+            node2: data[1].parse::<usize>().unwrap(),
+            time: data[2].parse::<u64>().unwrap(),
+        })
     }
 }
 

@@ -200,6 +200,29 @@ impl Matrix<Time> {
         true
     }
 
+    pub fn get_max_deg_node(&self, nfilter: &NodeFilter) -> Node {
+        let mval = Time::max_value();
+        let mut max_node = 0;
+        let mut max_deg = Node::max_value();
+        for x in 0..self.width {
+            if nfilter(x) {
+                let mut deg = 0;
+                for y in 0..self.height {
+                    if nfilter(y) && self.get(x, y) > 0 && self.get(x, y) < mval {
+                        deg = deg + 1;
+                    }
+                    if nfilter(y) && self.get(y, x) > 0 && self.get(y, x) < mval {
+                        deg = deg + 1
+                    }
+                }
+                if deg <= max_deg {
+                    max_deg = deg;
+                    max_node = x;
+                }
+            }
+        }
+        max_node
+    }
     /// Tells if the matrix is a `delta`-clique at time `time` or not
     ///
     /// A matrix is a `delta`-clique at time `time` if each value `v`
