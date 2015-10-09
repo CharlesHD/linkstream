@@ -262,7 +262,7 @@ fn main() {
                     algo::existence_intervals(&mut stdinLinks, &nodes, delta);
                 for (start, stop, set) in out {
                     let set_str: Vec<String> = set.iter().map(|node| format!("{}", node)).collect();
-                    println!("{} {} {}", stop, start + delta+1, set_str.connect(" "));
+                    println!("{} {} {}", stop, start + delta+1, set_str.join(" "));
                 }
             }
             else {
@@ -279,7 +279,7 @@ fn main() {
                 let mat = mat.transpose();
                 for vec in mat.matrix {
                     let line_vec: Vec<&str> = vec.iter().map(|b: &bool| if *b {"1"} else {"0"}).collect();
-                    println!("{}", line_vec.connect(" "));
+                    println!("{}", line_vec.join(" "));
                 }
             }
         }

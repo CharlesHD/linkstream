@@ -14,7 +14,7 @@ pub struct RenameLinkIter<'a> {
 
 impl<'a> RenameLinkIter<'a> {
     /// Decorate a LinkIterator for renaming.
-    pub fn new(iterator: &'a mut LinkIterator) -> RenameLinkIter {
+    pub fn new(iterator: &'a mut LinkIterator) -> RenameLinkIter<'a> {
         RenameLinkIter {
             iter: iterator,
             seens: HashMap::new(),
