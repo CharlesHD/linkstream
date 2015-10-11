@@ -251,6 +251,7 @@ fn main() {
         // EXIST
         else if args.cmd_exist {
             let nodes: Vec<usize> = (0..nbNodes).collect();
+            // LR
             if args.cmd_lr {
                 let (start, stop, vec) = algo::largest_boxe(&mut stdinLinks, &nodes, delta);
                 println!("{} {} {} {} {:?}", start, stop, (stop-start)*(vec.len() as Time), vec.len(), vec);

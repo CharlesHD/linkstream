@@ -284,7 +284,7 @@ pub fn delta_components_upper(links: &mut LinkIterator, size: usize,
     while let Some(filter) = stack.pop() {
         let filter_clone = filter.clone();
         if reach_graph.is_subset_clique(&move |node| filter_clone.contains(&node)) {
-            if filter.len() > 1 {components.push(filter);}
+            if filter.len() > 1 { components.push(filter); }
         }
         else {
             let cuts: Vec<Vec<Node>> = connected_component(&reach_graph, &order, &filtre::node_filter(&filter, size));
@@ -299,16 +299,20 @@ pub fn delta_components_upper(links: &mut LinkIterator, size: usize,
     (components, reste)
 }
 
+
 pub fn delta_partition(links: &mut LinkIterator,nodes: &Vec<Node>, delta: Time, upper: bool) -> Vec<(Time, Time, (Vec<Vec<Node>>, Vec<Vec<Node>>))> {
     let links: Vec<Link> = links.collect();
     let mut iter = links.clone().into_iter();
     let mut res: Vec<(Time, Time, (Vec<Vec<Node>>, Vec<Vec<Node>>))> = Vec::new();
     let intervals = existence_intervals(&mut iter, nodes, delta);
     for interv in intervals {
-        let (start, stop, vec) = interv;
+        let (stop, start, vec) = interv;
         let comps: (Vec<Vec<Node>>, Vec<Vec<Node>>);
-        if upper {comps = delta_components_upper(&mut iter, nodes.len(), delta, &vec, &move |time: Time| {time >= start && time < stop});}
-        else {comps = delta_components_lower(&mut iter, nodes.len(), delta, &vec, &move |time: Time| {time >= start && time < stop});}
+        comps = if upper {
+            delta_components_upper(&mut iter, nodes.len(), delta, &vec, &move |time: Time| {time >=start && time <= stop})
+                } else {
+            delta_components_lower(&mut iter, nodes.len(), delta, &vec, &move |time: Time| {time >=start && time <= stop})
+                };
         res.push((start.clone(), stop.clone(), comps.clone()));
     }
     res
