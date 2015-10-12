@@ -15,3 +15,7 @@ rollernet: all
 
 enron: all
 	./script/test_enron.sh
+
+plot:
+	./script/plot.sh rollernet
+	./script/plot.sh enron

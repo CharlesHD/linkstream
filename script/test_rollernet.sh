@@ -41,16 +41,16 @@ zcat $DATA | $CMD calc part up $DELTA $NBNODES > $OUTDIR"part_up.dat"
 # )
 # done
 
-# ### Largest rectangle
-# OUT=$OUTDIR"lb.dat"
-# rm $OUT
-# for ((i=1; i <= 160; i++)) do
-# (
-#     ((number=i*3))
-#     echo "largest rectangle : "$number
-#     zcat $DATA | $CMD calc exist lr $number $NBNODES >> $OUT
-# )
-# done
+### Largest rectangle
+OUT=$OUTDIR"lr.dat"
+rm $OUT
+for ((i=1; i <= 160; i++)) do
+(
+    ((number=i*3))
+    echo "largest rectangle : "$number
+    echo $number `zcat $DATA | $CMD calc exist lr $number $NBNODES` >> $OUT
+)
+done
 
 # ### Boxes medium size
 # OUT=$OUTDIR"box_moy.dat"
@@ -63,12 +63,4 @@ zcat $DATA | $CMD calc part up $DELTA $NBNODES > $OUTDIR"part_up.dat"
 # )
 # done
 
-### plotting curves
-PDIR=$OUTDIR"plots/"
-mkdir -p $PDIR
-PSCRIPT="rollernet.plot"
-cp $PSCRIPT $PDIR
-cd $PDIR
-gnuplot $PSCRIPT
-rm $PSCRIPT
-cd $OLDDIR
+    cd $OLDDIR
