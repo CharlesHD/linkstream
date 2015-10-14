@@ -357,6 +357,39 @@ pub fn delta_existence(links: &mut LinkIterator,
     }
     results
 }
+
+pub fn new_delta_existence(links: &mut LinkIterator,
+                           nodes: &Vec<Node>, delta: Time) -> Vec<(Time, Vec<bool>)> {
+    let exist_mat = delta_existence(links, nodes, 1);
+    let exist_mat_c = exist_mat.clone();
+    let mut truevec: Vec<bool> = Vec::with_capacity(nodes.len());
+    for _ in 0..nodes.len() { truevec.push(false); }
+    let size = exist_mat.len();
+    let mut res: Vec<(Time, Vec<bool>)> = Vec::with_capacity(size);
+    for ex in exist_mat {
+        let (t, _) = ex;
+        res.push((t, fold_existence_at(t, exist_mat_c.clone(), delta, truevec.clone())));
+    }
+    res
+}
+
+/// # Examples
+/// ```
+/// # use linkstreams::algo::fold_existence_at;
+/// let v = vec![(5, vec![false, false, false]),
+///              (4, vec![true, false, true]),
+///              (3, vec![true, false, true]),
+///              (2, vec![true, false, true]),
+///              (1, vec![true, false, true])];
+/// let t = vec![false, false, false];
+/// assert_eq!(fold_existence_at(3, v, 2, t), vec![true, false, true]);
+/// ```
+pub fn fold_existence_at(t: Time, v: Vec<(Time, Vec<bool>)>, delta: Time, init: Vec<bool>) -> Vec<bool> {
+    v.into_iter().filter(|mat| {let (tv, _) = *mat; tv >= t - delta && tv <= t + delta})
+        .map(|(_, b)| b)
+        .fold(init, |v1, v2| or(&v1, &v2))
+}
+
 /// The classic and boolean operator for boolean vector
 ///
 /// # Examples
@@ -423,7 +456,7 @@ pub fn diff(v1: &Vec<bool>, v2: &Vec<bool>) -> bool {
 pub fn existence_intervals(links: &mut LinkIterator,
                            nodes: &Vec<Node>, delta: Time)
                            -> Vec<(Time, Time, Vec<Node>)>{
-    let trace: Vec<(Time, Vec<bool>)> = delta_existence(links, nodes, delta);
+    let trace: Vec<(Time, Vec<bool>)> = new_delta_existence(links, nodes, delta);
     let mut intervals: Vec<(Time, Time, Vec<Node>)> = Vec::new();
     let mut curr_vec: Vec<bool>;
     let mut start: Time;

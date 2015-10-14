@@ -263,11 +263,11 @@ fn main() {
                     algo::existence_intervals(&mut stdinLinks, &nodes, delta);
                 for (start, stop, set) in out {
                     let set_str: Vec<String> = set.iter().map(|node| format!("{}", node)).collect();
-                    println!("{} {} {}", stop, start + delta+1, set_str.join(" "));
+                    println!("{} {} {}", stop, start + 1, set_str.join(" "));
                 }
             }
             else {
-                let mut out: Vec<Vec<bool>> = algo::delta_existence(&mut stdinLinks, &nodes, delta).iter().map(
+                let mut out: Vec<Vec<bool>> = algo::new_delta_existence(&mut stdinLinks, &nodes, delta).iter().map(
                     |&(_, ref exist): &(Time, Vec<bool>)| {
                         exist.clone()
                     }).collect();
@@ -302,7 +302,7 @@ fn main() {
                     maxcomp = if rest.len() > maxcomp {rest.len()} else {maxcomp};
                     all.push(rest);
                 }
-                println!("{} {} {} {} {:?}", start, stop + delta + 1, ncomp, maxcomp, all);
+                println!("{} {} {} {} {:?}", start, stop + 1, ncomp, maxcomp, all);
             }
         }
     }
