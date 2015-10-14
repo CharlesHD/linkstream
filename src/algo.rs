@@ -385,7 +385,7 @@ pub fn new_delta_existence(links: &mut LinkIterator,
 /// assert_eq!(fold_existence_at(3, v, 2, t), vec![true, false, true]);
 /// ```
 pub fn fold_existence_at(t: Time, v: Vec<(Time, Vec<bool>)>, delta: Time, init: Vec<bool>) -> Vec<bool> {
-    v.into_iter().filter(|mat| {let (tv, _) = *mat; tv >= t - delta && tv <= t + delta})
+    v.into_iter().filter(|mat| {let (tv, _) = *mat; if delta > t {tv <= t + delta} else {tv >= t - delta && tv <= t + delta}})
         .map(|(_, b)| b)
         .fold(init, |v1, v2| or(&v1, &v2))
 }
