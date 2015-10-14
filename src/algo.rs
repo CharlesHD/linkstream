@@ -309,9 +309,9 @@ pub fn delta_partition(links: &mut LinkIterator,nodes: &Vec<Node>, delta: Time, 
         let (stop, start, vec) = interv;
         let comps: (Vec<Vec<Node>>, Vec<Vec<Node>>);
         comps = if upper {
-            delta_components_upper(&mut iter, nodes.len(), delta, &vec, &move |time: Time| {time >=start && time <= stop})
+            delta_components_upper(&mut links.clone().into_iter(), nodes.len(), delta, &vec, &move |time: Time| {time >=start && time <= stop + delta + 1})
                 } else {
-            delta_components_lower(&mut iter, nodes.len(), delta, &vec, &move |time: Time| {time >=start && time <= stop})
+            delta_components_lower(&mut links.clone().into_iter(), nodes.len(), delta, &vec, &move |time: Time| {time >=start && time <= stop + delta + 1})
                 };
         res.push((start.clone(), stop.clone(), comps.clone()));
     }

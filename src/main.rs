@@ -302,7 +302,7 @@ fn main() {
                     maxcomp = if rest.len() > maxcomp {rest.len()} else {maxcomp};
                     all.push(rest);
                 }
-                println!("{} {} {} {} {:?}", stop, start,ncomp, maxcomp, all);
+                println!("{} {} {} {} {:?}", start, stop + delta + 1, ncomp, maxcomp, all);
             }
         }
     }
