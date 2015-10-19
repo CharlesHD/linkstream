@@ -385,9 +385,10 @@ pub fn new_delta_existence(links: &mut LinkIterator,
 /// assert_eq!(fold_existence_at(3, v, 2, t), vec![true, false, true]);
 /// ```
 pub fn fold_existence_at(t: Time, v: Vec<(Time, Vec<bool>)>, delta: Time, init: Vec<bool>) -> Vec<bool> {
-    v.into_iter().filter(|mat| {let (tv, _) = *mat; if delta > t {tv <= t + delta} else {tv >= t - delta && tv <= t + delta}})
-        .map(|(_, b)| b)
-        .fold(init, |v1, v2| or(&v1, &v2))
+    let vectors = v.into_iter()
+        .filter(|mat| {let (tv, _) = *mat; if delta > t {tv <= t + delta} else {tv >= t - delta && tv <= t + delta}})
+        .map(|(_, b)| b).collect();
+    or_v(&vectors)
 }
 
 /// The classic and boolean operator for boolean vector
@@ -431,6 +432,16 @@ pub fn or(v1: &Vec<bool>, v2: &Vec<bool>) -> Vec<bool> {
     }
     res
 }
+pub fn or_v(v : &Vec<Vec<bool>>) -> Vec<bool> {
+    let mut res: Vec<bool> = Vec::new();
+    for i in 0..(v.get(0).unwrap().len() - 1) {
+        let mut or = false;
+        for b in v { or = or || *b.get(i).unwrap(); }
+        res.push(or);
+    }
+    res
+}
+
 /// ```
 /// # use linkstreams::algo::diff;
 /// let v1 = vec![false, true];
