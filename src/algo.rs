@@ -322,20 +322,20 @@ pub fn delta_partition(links: &mut LinkIterator,nodes: &Vec<Node>, delta: Time, 
 //        EXISTENCE
 // ////////////////////////////
 pub fn delta_existence(links: &mut LinkIterator,
-                       nodes: &Vec<Node>, delta: Time) -> Vec<(Time, Vec<bool>)> {
+                       nodes: &Vec<Node>, delta: Time, decreasing: bool) -> Vec<(Time, Vec<bool>)> {
     let mut results: Vec<(Time, Vec<bool>)> = Vec::new();
     let mut map: HashMap<Node, Node> = HashMap::new();
     for i in 0..nodes.len() { map.insert(nodes[i], i); }
     let map = map;
     let mut record: Vec<Time> = Vec::with_capacity(nodes.len());
-    let mval = Time::max_value();
+    let mval = if decreasing { Time::max_value() } else { 0 };
     let mut t_curr = mval;
     let mut t_max: Time = 0;
     for _ in 0..nodes.len() { record.push(mval); }
     let is_existing = |t_curr: Time, record: &Vec<Time>| {
-        let res: Vec<bool> = record.iter().map(|time| time - t_curr < delta).collect();
+        let res: Vec<bool> = if decreasing {record.iter().map(|time| time - t_curr < delta).collect()} else {record.iter().map(|time| t_curr - time < delta).collect()};
         res
-    };
+        };
     for link in links {
         let (n1, n2, t) = (link.node1, link.node2, link.time);
         if t_curr == mval {
@@ -343,7 +343,7 @@ pub fn delta_existence(links: &mut LinkIterator,
             t_max = t;
         }
         else if t_curr != t {
-            if t < t_max - delta {
+            if if decreasing { t < t_max - delta } else { t > t_max + delta } {
                 results.push((t, is_existing(t_curr, &record)));
             }
             t_curr = t;
@@ -360,36 +360,51 @@ pub fn delta_existence(links: &mut LinkIterator,
 
 pub fn new_delta_existence(links: &mut LinkIterator,
                            nodes: &Vec<Node>, delta: Time) -> Vec<(Time, Vec<bool>)> {
-    let exist_mat = delta_existence(links, nodes, 1);
-    let exist_mat_c = exist_mat.clone();
-    let mut truevec: Vec<bool> = Vec::with_capacity(nodes.len());
-    for _ in 0..nodes.len() { truevec.push(false); }
+    let exist_mat = delta_existence(links, nodes, 0, true);
     let size = exist_mat.len();
+    let mut lb: Vec<usize> = Vec::with_capacity(size);
+    let mut hb: Vec<usize> = Vec::with_capacity(size);
+    let mut vectors: Vec<&Vec<bool>> = Vec::with_capacity(size);
+    for _ in 0..(size-1) {
+        lb.push(0);
+        hb.push(size-1);
+    }
+    let mut j = 0;
+    for i in 0..(size - 1){
+        let (t, ref v) = exist_mat[i];
+        while j < size - 2 && t - exist_mat[j].0 < delta {
+            j += 1;
+        }
+        hb[i] = j;
+        lb[j] = i;
+        vectors.push(v);
+    }
     let mut res: Vec<(Time, Vec<bool>)> = Vec::with_capacity(size);
-    for ex in exist_mat {
-        let (t, _) = ex;
-        res.push((t, fold_existence_at(t, exist_mat_c.clone(), delta, truevec.clone())));
+    for i in 0..(size - 1) {
+        let t = exist_mat[i].0;
+        let v = or_v(&vectors[lb[i]..(hb[i] + 1)]);
+        res.push((t, v));
     }
     res
 }
 
-/// # Examples
-/// ```
-/// # use linkstreams::algo::fold_existence_at;
-/// let v = vec![(5, vec![false, false, false]),
-///              (4, vec![true, false, true]),
-///              (3, vec![true, false, true]),
-///              (2, vec![true, false, true]),
-///              (1, vec![true, false, true])];
-/// let t = vec![false, false, false];
-/// assert_eq!(fold_existence_at(3, v, 2, t), vec![true, false, true]);
-/// ```
-pub fn fold_existence_at(t: Time, v: Vec<(Time, Vec<bool>)>, delta: Time, init: Vec<bool>) -> Vec<bool> {
-    let vectors = v.into_iter()
-        .filter(|mat| {let (tv, _) = *mat; if delta > t {tv <= t + delta} else {tv >= t - delta && tv <= t + delta}})
-        .map(|(_, b)| b).collect();
-    or_v(&vectors)
-}
+// /// # Examples
+// /// ```
+// /// # use linkstreams::algo::fold_existence_at;
+// /// let v = vec![(5, vec![false, false, false]),
+// ///              (4, vec![true, false, true]),
+// ///              (3, vec![true, false, true]),
+// ///              (2, vec![true, false, true]),
+// ///              (1, vec![true, false, true])];
+// /// let t = vec![false, false, false];
+// /// assert_eq!(fold_existence_at(3, v, 2, t), vec![true, false, true]);
+// /// ```
+// pub fn fold_existence_at(t: Time, v: Vec<(Time, Vec<bool>)>, delta: Time) -> Vec<bool> {
+//     let vectors = v.into_iter()
+//         .filter(|mat| {let (tv, _) = *mat; if delta > t {tv <= t + delta} else {tv >= t - delta && tv <= t + delta}})
+//         .map(|(_, b)| b).collect();
+//     or_v(&vectors)
+// }
 
 /// The classic and boolean operator for boolean vector
 ///
@@ -432,11 +447,11 @@ pub fn or(v1: &Vec<bool>, v2: &Vec<bool>) -> Vec<bool> {
     }
     res
 }
-pub fn or_v(v : &Vec<Vec<bool>>) -> Vec<bool> {
+pub fn or_v(v : &[&Vec<bool>]) -> Vec<bool> {
     let mut res: Vec<bool> = Vec::new();
-    for i in 0..(v.get(0).unwrap().len() - 1) {
+    for i in 0..(v[0].len() - 1) {
         let mut or = false;
-        for b in v { or = or || *b.get(i).unwrap(); }
+        for b in v { or = or || b[i]; }
         res.push(or);
     }
     res
@@ -492,7 +507,7 @@ pub fn existence_intervals(links: &mut LinkIterator,
 
 pub fn largest_boxe(links: &mut LinkIterator, nodes: &Vec<Node>, delta: Time)
                          -> (Time, Time, Vec<Node>) {
-    let trace: Vec<(Time, Vec<bool>)> = delta_existence(links, nodes, delta);
+    let trace: Vec<(Time, Vec<bool>)> = new_delta_existence(links, nodes, delta);
     let mut stack: Vec<(Time, Time, Vec<bool>)> = Vec::new();
     let mut max_score: Time = 0;
     let mut max: (Time, Time, Vec<Node>) = (0, 0, Vec::new());
