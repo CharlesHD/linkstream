@@ -21,18 +21,18 @@ zcat $DATA | $CMD calc exist $DELTA $NBNODES > $OUTDIR"existence.matrix"
 zcat $DATA | $CMD calc part $DELTA $NBNODES > $OUTDIR"part_low.dat"
 zcat $DATA | $CMD calc part up $DELTA $NBNODES > $OUTDIR"part_up.dat"
 
-### Components
-OUT=$OUTDIR"comps_low.dat"
-OUT2=$OUTDIR"comps_up.dat"
-rm $OUT $OUT2
-for ((i=50; i <= 360; i++)) do
-(
-    ((number=i*5))
-    echo "components for delta = "$number
-    echo $number `zcat $DATA | $CMD calc comps $number $NBNODES` >> $OUT
-    echo $number `zcat $DATA | $CMD calc comps up $number $NBNODES` >> $OUT2
-)
-done
+# ### Components
+# OUT=$OUTDIR"comps_low.dat"
+# OUT2=$OUTDIR"comps_up.dat"
+# rm $OUT $OUT2
+# for ((i=50; i <= 360; i++)) do
+# (
+#     ((number=i*5))
+#     echo "components for delta = "$number
+#     echo $number `zcat $DATA | $CMD calc comps $number $NBNODES` >> $OUT
+#     echo $number `zcat $DATA | $CMD calc comps up $number $NBNODES` >> $OUT2
+# )
+# done
 
 # ### Number of existence intervals
 # OUT=$OUTDIR"cut.dat"
