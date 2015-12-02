@@ -420,6 +420,14 @@ pub fn diff(v1: &Vec<bool>, v2: &Vec<bool>) -> bool {
     false
 }
 
+pub fn intersection(v1: &Vec<Node>, v2: &Vec<Node>) -> Vec<Node> {
+    let mut res: Vec<Node> = Vec::new();
+    for n in v1 {
+        if v2.contains(n) { res.push(*n); }
+    }
+    res
+}
+
 pub fn existence_intervals(links: &mut LinkIterator,
                            nodes: &Vec<Node>, delta: Time)
                            -> Vec<(Time, Time, Vec<Node>)>{

@@ -15,6 +15,7 @@ Usage:
        linkstream calc comps [up] <delta> <nbNodes> [node <node>... | both <start> <stop> <node>...]
        linkstream calc exist [lr | cut] <delta> <nbNodes>
        linkstream calc part [up] <delta> <nbNodes>
+       linkstream calc infix [up] <delta> <nbNodes> <proba>
        linkstream rename
        linkstream gen <nbNodes> <stop> <proba>
        linkstream info (count (node | links) | degrees <nbNodes> | repart <nbNodes>)
@@ -37,6 +38,7 @@ struct Args {
     cmd_up: bool,
     cmd_exist: bool,
     cmd_part: bool,
+    cmd_infix: bool,
     cmd_lr: bool,
     cmd_cut: bool,
     cmd_node: bool,
@@ -64,7 +66,7 @@ fn main() {
     let mut nodes: Option<Vec<Node>> = None;
     let mut proba: Option<u64> = None;
     let mut stdinLinks = stdin_link_iterator::StdinLinkIter::new();
-    if args.cmd_calc || args.cmd_degrees || args.cmd_repart || args.cmd_gen {
+    if args.cmd_calc || args.cmd_degrees || args.cmd_repart || args.cmd_gen || args.cmd_infix {
         nbNodes = Some(usize::from_str_radix(&args.arg_nbNodes, 10).unwrap());
     }
     if args.cmd_time || args.cmd_both {
@@ -82,6 +84,10 @@ fn main() {
     }
     if args.cmd_calc {
         delta = Some(Time::from_str_radix(&args.arg_delta, 10).unwrap());
+    }
+    if args.cmd_infix {
+        proba = Some(u64::from_str_radix(&args.arg_proba, 10).unwrap());
+
     }
     // RENAME
     if args.cmd_rename {
@@ -304,6 +310,25 @@ fn main() {
                 }
                 println!("{} {} {} {} {:?}", start, stop + delta + 1, ncomp, maxcomp, all);
             }
+        }
+        else if args.cmd_infix {
+            let nodes: Vec<usize> = (0..nbNodes).collect();
+            let proba = proba.unwrap() as u64;
+            let treshold: usize =  nbNodes * (proba as usize) / 100;
+            let parts = algo::delta_partition(&mut stdinLinks, &nodes, delta, args.cmd_up);
+            let iter = parts.into_iter();
+            let sols: Vec<Vec<Node>> = iter.map(|(start, stop, (comps, restes))| {
+                let mut all = comps.clone();
+                for rest in restes { all.push(rest); }
+                let mut maximum: usize = 0;
+                let mut vec: Vec<Node> = Vec::new();
+                for l in all.clone() { if l.len() > maximum { maximum = l.len(); vec = l.clone()}}
+                (start, stop, vec, maximum)
+            }).filter(|&(_, _, _, maximum)| maximum >= treshold).map(|(_, _, vec, _)| vec).collect();
+            let sol: Vec<Node> = if sols.len() == 0 { Vec::new() } else {
+                sols.into_iter().fold(nodes, |a, b| algo::intersection(&a, &b))
+            };
+            println!("{} {:?}", sol.len(), sol);
         }
     }
 }

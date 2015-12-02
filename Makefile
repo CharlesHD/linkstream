@@ -11,10 +11,10 @@ install: all
 	cp target/release/linkstreams /usr/bin/linkstream
 
 rollernet: all
-	./script/test_rollernet.sh
+	./script/test_rollernet.sh $(DELTA)
 
 enron: all
-	./script/test_enron.sh
+	./script/test_enron.sh $(DELTA)
 
 plot:
 	./script/plot.sh rollernet

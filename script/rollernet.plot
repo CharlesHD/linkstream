@@ -1,4 +1,4 @@
-set terminal pdf enhanced
+set terminal pdf enhanced monochrome
 
 if (system("[ ! -e ../existence.matrix ]; echo $?")) {
     set output "exist_mat.pdf"
@@ -33,15 +33,18 @@ if (system("[ ! -e ../box_moy.dat ]; echo $?")) {
 
 if (system("[ ! -e ../comps_low.dat ]; echo $?")) {
     set xlabel "delta (s)"
-    set ylabel "# nodes" 
+    set ylabel "# nodes"
     set output "nb_comps.pdf"
     plot  "../comps_low.dat" using 1:3 notitle w lines, "../comps_up.dat" using 1:3 notitle w lines lt rgb "blue"
 }
 
 unset grid
 if (system("[ ! -e ../part_low.dat ]; echo $?")) {
-    set xlabel "temps (s)"
-    set ylabel "# sommets"
+    set xlabel "time (min)"
+    set ylabel "# vertex (%)"
     set output "part.pdf"
-    plot "../part_up.dat" using 1:4 notitle w boxes fs solid 0.7, "../part_low.dat" using 1:4 notitle w boxes fs solid 0.7 lt rgb "blue", 62 lt rgb "black" notitle
+    set yrange [0:100]
+    plot "../part_up.dat" using (($1 + $2)/(2 * 60)):($4 * 100 / 62):($1/60):($2/60) notitle w xerrorbars ps 0 lw 1 lc rgb "#aaaaff", "../part_low.dat" using (($1 + $2)/(2*60)):($4 * 100 / 62):($1/60):($2/60) notitle w xerrorbars ps 0 lt 1 lc rgb "#FFBBBB", "../part_up.dat" using (($1 + $2)/(2*60)):($4 * 100 / 62) notitle w lines lt 2 lw 2 linecolor rgb "#0000ff", "../part_low.dat" using (($1 + $2)/(2*60)):($4 * 100 / 62) notitle w lines lt 0 lw 5 lc rgb "#E63500"
+    # set output "part_gray.pdf"
+    # plot "../part_up.dat" using (($1 + $2)/(2 * 60)):($4 * 100 / 62):($1/60):($2/60) notitle w xerrorbars ps 0 lw 1 lc rgb "#8888ff", "../part_low.dat" using (($1 + $2)/(2*60)):($4 * 100 / 62):($1/60):($2/60) notitle w xerrorbars ps 0 lt 1 lc rgb "#DAE074", "../part_up.dat" using (($1 + $2)/(2*60)):($4 * 100 / 62) notitle w lines lt 2 lw 2 linecolor rgb "#1D1D1D", "../part_low.dat" using (($1 + $2)/(2*60)):($4 * 100 / 62) notitle w lines lt 0 lw 5 lc rgb "#646464"
 }

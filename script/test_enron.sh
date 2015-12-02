@@ -3,8 +3,12 @@
 CMD="../target/release/linkstream"
 DATA="../datas/enron.dyn.gz "
 OUTDIR="../target/tests/enron/"
+function weekToSec {
+    ((res=$1 * 86400 * 7))
+    echo $res
+}
 NBNODES=150
-DELTA=2000000
+DELTA=`weekToSec $1`
 OLDDIR=`pwd`
 
 cd script
@@ -30,37 +34,37 @@ for ((i=1; i <= 360; i++)) do
 )
 done
 
-### Number of existence intervals
-OUT=$OUTDIR"cut.dat"
-rm $OUT
-for ((i=1; i <= 200; i++)) do
-(
-    ((number=i*86400*3))
-    echo "number of existence intervs for delta = "$number
-    echo $number `zcat $DATA | $CMD calc exist cut $number $NBNODES | wc -l` >> $OUT
-)
-done
+# ### Number of existence intervals
+# OUT=$OUTDIR"cut.dat"
+# rm $OUT
+# for ((i=1; i <= 200; i++)) do
+# (
+#     ((number=i*86400*3))
+#     echo "number of existence intervs for delta = "$number
+#     echo $number `zcat $DATA | $CMD calc exist cut $number $NBNODES | wc -l` >> $OUT
+# )
+# done
 
-### Largest rectangle
-OUT=$OUTDIR"lr.dat"
-rm $OUT
-for ((i=1; i <= 160; i++)) do
-(
-    ((number=i*86400*3))
-    echo "largest rectangle : "$number
-    echo $number `zcat $DATA | $CMD calc exist lr $number $NBNODES` >> $OUT
-)
-done
+# ### Largest rectangle
+# OUT=$OUTDIR"lr.dat"
+# rm $OUT
+# for ((i=1; i <= 160; i++)) do
+# (
+#     ((number=i*86400*3))
+#     echo "largest rectangle : "$number
+#     echo $number `zcat $DATA | $CMD calc exist lr $number $NBNODES` >> $OUT
+# )
+# done
 
-### Boxes medium size
-OUT=$OUTDIR"box_moy.dat"
-rm box_moy.dat
-for ((i=1; i <= 360; i++)) do
-(
-    ((number=i*84600*3))
-    echo "medium boxe size for delta = "$number
-    echo $number `zcat $DATA | $CMD calc exist cut $number $NBNODES | awk '{n1+=($2-$1)*($NF - 2); n2+=1} END { print n1/n2/(150*98277034)}' `>> $OUT
-)
-done
+# ### Boxes medium size
+# OUT=$OUTDIR"box_moy.dat"
+# rm box_moy.dat
+# for ((i=1; i <= 360; i++)) do
+# (
+#     ((number=i*84600*3))
+#     echo "medium boxe size for delta = "$number
+#     echo $number `zcat $DATA | $CMD calc exist cut $number $NBNODES | awk '{n1+=($2-$1)*($NF - 2); n2+=1} END { print n1/n2/(150*98277034)}' `>> $OUT
+# )
+# done
 
 cd $OLDDIR
