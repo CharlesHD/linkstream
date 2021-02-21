@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CMD="../target/release/linkstream"
 DATA="../datas/rollernet.dyn.gz "

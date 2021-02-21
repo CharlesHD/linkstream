@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 OLDDIR=`pwd`
 OUTDIR="../target/tests/"$1"/"
