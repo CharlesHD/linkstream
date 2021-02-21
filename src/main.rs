@@ -1,8 +1,9 @@
-extern crate rustc_serialize;
+extern crate serde;
 extern crate docopt;
 extern crate linkstreams;
 
 use docopt::Docopt;
+use serde::{Serialize, Deserialize};
 
 use linkstreams::*;
 use linkstreams::data::link::Time;
@@ -23,7 +24,7 @@ Usage:
 ";
 
 #[allow(non_snake_case)]
-#[derive(RustcDecodable, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 struct Args {
     cmd_rename: bool,
     cmd_gen: bool,
@@ -56,7 +57,7 @@ struct Args {
 #[allow(non_snake_case)]
 fn main() {
     let args: Args = Docopt::new(USAGE)
-        .and_then(|d| d.decode())
+        .and_then(|d| d.argv(std::env::args().into_iter()).deserialize())
         .unwrap_or_else(|e| e.exit());
     // Args extraction
     let mut nbNodes: Option<usize> = None;

@@ -2,9 +2,9 @@ use data::link::Link;
 use data::link::Node;
 use data::link::Time;
 
-pub type NodeFilter = Fn(Node) -> bool;
-pub type TimeFilter = Fn(Time) -> bool;
-pub type LinkFilter = Fn(Link) -> bool;
+pub type NodeFilter = dyn Fn(Node) -> bool;
+pub type TimeFilter = dyn Fn(Time) -> bool;
+pub type LinkFilter = dyn Fn(Link) -> bool;
 
 /// Check if a link respects a nodefilter and a timefilter.
 pub fn combine(link: Link, nfilter: &NodeFilter, tfilter: &TimeFilter) -> bool {

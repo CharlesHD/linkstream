@@ -1,16 +1,12 @@
 [package]
 name = "linkstreams"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["charlesHD <charleshdespointes@gmail.com>"]
-
-[[bin]]
-name = "linkstream"
-doc = false
 
 [profile.dev]
 opt-level = 0
 
 [dependencies]
-docopt = "*"
-rustc-serialize = "*"  # if you're using `derive(RustcDecodable)`
-rand = "*"
+docopt = "1.1.0"
+serde = "1.0.123"
+rand = "0.8.3"

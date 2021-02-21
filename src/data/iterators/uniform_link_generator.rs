@@ -42,7 +42,8 @@ impl Iterator for UnifLinkGenerator {
                 while self.node2 < self.nb_nodes {
                     let link = self.current_link();
                     self.node2 = self.node2 + 1;
-                    if thread_rng().next_f64() <= self.proba {
+                    let rnf : f64 = thread_rng().gen();
+                    if rnf <= self.proba {
                         return Some(link);
                     }
                 }
