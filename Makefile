@@ -8,7 +8,7 @@ clean:
 	cargo clean
 
 install: all
-	cp target/release/linkstreams /usr/bin/linkstreams
+	cp target/release/linkstream /usr/bin/linkstream
 
 rollernet: all
 	./script/test_rollernet.sh $(DELTA)

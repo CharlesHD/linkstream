@@ -6,6 +6,9 @@ authors = ["charlesHD <charleshdespointes@gmail.com>"]
 [profile.dev]
 opt-level = 0
 
+[[bin]]
+name = "linkstream"
+
 [dependencies]
 docopt = "1.1.0"
 serde = "1.0.123"
